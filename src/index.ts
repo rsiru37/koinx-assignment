@@ -1,42 +1,16 @@
 import express from "express";
 import cors from "cors"
 import axios from "axios";
+import {priceModel, marketcapModel, changeModel} from "./db"
 const cron = require('node-cron');
-const mongoose = require("mongoose");
-mongoose.connect('mongodb+srv://rajsiruvani:bLvBLnUdOuDkP9Ux@cluster0.5he0n.mongodb.net/', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err: any) => console.error('Error connecting to MongoDB', err));
-const Schema = mongoose.Schema;
-let obj_id:any;
-const prices = new Schema({
-  btc: Number,
-  matic: Number,
-  ethereum: Number,
-});
-const mkt_cap = new Schema({
-  btc: Number,
-  matic: Number,
-  ethereum: Number,
-});
-const change = new Schema({
-  btc: Number,
-  matic: Number,
-  ethereum: Number,
-  // lastUpdated: { type: Date, default: Date.now }
-});
+const math = require('mathjs');
 
-const priceModel = mongoose.model('prices',prices);
-const marketcapModel = mongoose.model('marketcap',mkt_cap);
-const changeModel = mongoose.model('change',change);
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 //Running this every 2 hours
-cron.schedule('* * * * *', async() => {
+cron.schedule('*/10 * * * * *', async() => {
     console.log('Running task every minute');
     const response = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,matic-network,ethereum&vs_currencies=usd&include_market_cap=true&include_24hr_change=true`,
         {
@@ -53,23 +27,22 @@ cron.schedule('* * * * *', async() => {
         await priceModel.create({
             btc:coins_data['bitcoin'].usd,
             matic:coins_data['matic-network'].usd,
-            ethereum:coins_data['ethereum'].usd
+            ethereum:coins_data['ethereum'].usd,
+            lastUpdated:Date.now()
         });
         await marketcapModel.create({
           btc:coins_data['bitcoin'].usd_market_cap,
           matic:coins_data['matic-network'].usd_market_cap,
-          ethereum:coins_data['ethereum'].usd_market_cap
+          ethereum:coins_data['ethereum'].usd_market_cap,
+          lastUpdated:Date.now()
         });
         await changeModel.create({
           btc:coins_data['bitcoin'].usd_24h_change,
           matic:coins_data['matic-network'].usd_24h_change,
-          ethereum:coins_data['ethereum'].usd_24h_change
+          ethereum:coins_data['ethereum'].usd_24h_change,
+          lastUpdated:Date.now()
         });
-        console.log("PD");
-        //obj_id=price_data._id.toString();
-        //console.log("OBJECT ID", obj_id);
     }
-    //console.log(db_data);
   );
 
 
@@ -87,9 +60,9 @@ app.get('/stats', async(req,res) => {
   }
   if(coin === 'ethereum'){
     res.json({
-      price: latestprice.eth,
-      marketCap: latestmcap.eth,
-      "24hChange":price_change.eth
+      price: latestprice.ethereum,
+      marketCap: latestmcap.ethereum,
+      "24hChange":price_change.ethereum
     })
   }
     if(coin === "matic"){
@@ -101,4 +74,26 @@ app.get('/stats', async(req,res) => {
     }
   }
 )
+
+app.get('/deviation', async(req,res) => {
+  const {coin} =  req.query;
+  const latestprices = await priceModel.find().sort({ lastUpdated: -1 }).limit(100);
+  if(coin === "bitcoin"){
+    const b_prices = latestprices.map((item:any) => item.btc);
+    res.json({deviation: math.std(b_prices)})
+  }
+  else if(coin === "matic"){
+    const m_prices = latestprices.map((item:any) => item.matic);
+    res.json({deviation: math.std(m_prices)});
+  }
+  else if(coin === "ethereum"){
+    const e_prices = latestprices.map((item:any) => item.ethereum);
+    res.json({deviation: math.std(e_prices)})
+  }
+  else{
+    res.json({status:400, message:"Please select bitcoin, ethereum, matic"})
+  }
+
+
+})
 app.listen(3000, () => { console.log("App Started!")});
