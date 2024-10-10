@@ -44,6 +44,9 @@ cron.schedule('0 */2 * * *', async() => {
     }
   );
 
+app.get('/', (req,res) => {
+  res.send("Koinx Assignment");
+})
 
 app.get('/stats', async(req,res) => {
   const {coin} =  req.query;
