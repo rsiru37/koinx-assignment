@@ -10,8 +10,8 @@ app.use(cors());
 app.use(express.json());
 
 //Running this every 2 hours
-cron.schedule('*/10 * * * * *', async() => {
-    console.log('Running task every minute');
+cron.schedule('0 */2 * * *', async() => {
+    console.log('Running task every 2 Hours');
     const response = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,matic-network,ethereum&vs_currencies=usd&include_market_cap=true&include_24hr_change=true`,
         {
             headers:
@@ -19,10 +19,8 @@ cron.schedule('*/10 * * * * *', async() => {
                 'accept': 'application/json',
                 'x-cg-demo-api-key': process.env.API_KEY,
             }
-    }
-    )
+    });
     const coins_data = response.data;
-    console.log("PRICES37", coins_data);
 
         await priceModel.create({
             btc:coins_data['bitcoin'].usd,
@@ -58,19 +56,22 @@ app.get('/stats', async(req,res) => {
       "24hChange":price_change.btc
     })
   }
-  if(coin === 'ethereum'){
+  else if(coin === 'ethereum'){
     res.json({
       price: latestprice.ethereum,
       marketCap: latestmcap.ethereum,
       "24hChange":price_change.ethereum
     })
   }
-    if(coin === "matic"){
+  else if(coin === "matic"){
       res.json({
         price: latestprice.matic,
         marketCap: latestmcap.matic,
         "24hChange":price_change.matic
       })
+    }
+    else{
+      res.json({status:400, message:"Please select bitcoin, ethereum, matic"})
     }
   }
 )

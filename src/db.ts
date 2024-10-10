@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
-mongoose.connect('mongodb+srv://rajsiruvani:bLvBLnUdOuDkP9Ux@cluster0.5he0n.mongodb.net/', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
+mongoose.connect('mongodb+srv://rajsiruvani:bLvBLnUdOuDkP9Ux@cluster0.5he0n.mongodb.net/')
   .then(() => console.log('Connected to MongoDB'))
   .catch((err: any) => console.error('Error connecting to MongoDB', err));
 const Schema = mongoose.Schema;
