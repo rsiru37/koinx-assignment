@@ -1,5 +1,7 @@
+import dotenv from 'dotenv';
+dotenv.config();
 const mongoose = require("mongoose");
-mongoose.connect('mongodb+srv://rajsiruvani:bLvBLnUdOuDkP9Ux@cluster0.5he0n.mongodb.net/')
+mongoose.connect(process.env.MONGO_DB_URL)
   .then(() => console.log('Connected to MongoDB'))
   .catch((err: any) => console.error('Error connecting to MongoDB', err));
 const Schema = mongoose.Schema;
