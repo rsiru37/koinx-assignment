@@ -71,7 +71,7 @@ app.get('/stats', async(req,res) => {
       })
     }
     else{
-      res.json({status:400, message:"Please select bitcoin, ethereum, matic"})
+      res.status(400).json({message:"Please select bitcoin, ethereum, matic"});
     }
   }
 )
@@ -92,7 +92,7 @@ app.get('/deviation', async(req,res) => {
     res.json({deviation: math.std(e_prices)})
   }
   else{
-    res.json({status:400, message:"Please select bitcoin, ethereum, matic"})
+    res.status(400).json({ message:"Please select bitcoin, ethereum, matic"});
   }
 
 
