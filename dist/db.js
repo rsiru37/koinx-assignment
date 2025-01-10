@@ -1,11 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.changeModel = exports.marketcapModel = exports.priceModel = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const mongoose = require("mongoose");
-mongoose.connect('mongodb+srv://rajsiruvani:bLvBLnUdOuDkP9Ux@cluster0.5he0n.mongodb.net/', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGO_DB_URL)
     .then(() => console.log('Connected to MongoDB'))
     .catch((err) => console.error('Error connecting to MongoDB', err));
 const Schema = mongoose.Schema;

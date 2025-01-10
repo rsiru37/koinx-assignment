@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const axios_1 = __importDefault(require("axios"));
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const db_1 = require("./db");
 const cron = require('node-cron');
 const math = require('mathjs');
@@ -22,8 +24,7 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 //Running this every 2 hours
-cron.schedule('*/10 * * * * *', () => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('Running task every minute');
+cron.schedule('0 */2 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield axios_1.default.get(`https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,matic-network,ethereum&vs_currencies=usd&include_market_cap=true&include_24hr_change=true`, {
         headers: {
             'accept': 'application/json',
@@ -31,7 +32,6 @@ cron.schedule('*/10 * * * * *', () => __awaiter(void 0, void 0, void 0, function
         }
     });
     const coins_data = response.data;
-    console.log("PRICES37", coins_data);
     yield db_1.priceModel.create({
         btc: coins_data['bitcoin'].usd,
         matic: coins_data['matic-network'].usd,
@@ -51,6 +51,9 @@ cron.schedule('*/10 * * * * *', () => __awaiter(void 0, void 0, void 0, function
         lastUpdated: Date.now()
     });
 }));
+app.get('/', (req, res) => {
+    res.send("Koinx Assignment");
+});
 app.get('/stats', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { coin } = req.query;
     const latestprice = yield db_1.priceModel.findOne().sort({ lastUpdated: -1 });
@@ -63,19 +66,22 @@ app.get('/stats', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             "24hChange": price_change.btc
         });
     }
-    if (coin === 'ethereum') {
+    else if (coin === 'ethereum') {
         res.json({
             price: latestprice.ethereum,
             marketCap: latestmcap.ethereum,
             "24hChange": price_change.ethereum
         });
     }
-    if (coin === "matic") {
+    else if (coin === "matic") {
         res.json({
             price: latestprice.matic,
             marketCap: latestmcap.matic,
             "24hChange": price_change.matic
         });
+    }
+    else {
+        res.status(400).json({ message: "Please select bitcoin, ethereum, matic" });
     }
 }));
 app.get('/deviation', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -94,7 +100,7 @@ app.get('/deviation', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         res.json({ deviation: math.std(e_prices) });
     }
     else {
-        res.json({ status: 400, message: "Please select bitcoin, ethereum, matic" });
+        res.status(400).json({ message: "Please select bitcoin, ethereum, matic" });
     }
 }));
 app.listen(3000, () => { console.log("App Started!"); });
