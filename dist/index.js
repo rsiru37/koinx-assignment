@@ -52,7 +52,7 @@ cron.schedule('0 */2 * * *', () => __awaiter(void 0, void 0, void 0, function* (
     });
 }));
 app.get('/', (req, res) => {
-    res.send("Koinx Assignment");
+    res.send("Koinx Assignment, It might take around 50 seconds for server to wake up and start. Please Wait!");
 });
 app.get('/stats', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { coin } = req.query;

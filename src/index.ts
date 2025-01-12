@@ -22,7 +22,6 @@ cron.schedule('0 */2 * * *', async() => {
             }
     });
     const coins_data = response.data;
-
         await priceModel.create({
             btc:coins_data['bitcoin'].usd,
             matic:coins_data['matic-network'].usd,
@@ -45,7 +44,7 @@ cron.schedule('0 */2 * * *', async() => {
   );
 
 app.get('/', (req,res) => {
-  res.send("Koinx Assignment");
+  res.send("Koinx Assignment, It might take around 50 seconds for server to wake up and start. Please Wait!");
 })
 
 app.get('/stats', async(req,res) => {
